@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+                "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.posco.insta.post.repository.PostMapper">
+<select id="getPosts" resultType="PostDto">
+    SELECT
+    id, userId, img, content
+    FROM
+    posts
+</select>
+<select id="findPostByUserId" resultType="SelectPostJoinUserDto" parameterType="PostDto">
+    SELECT
+    p.id, p.userId, p.img, p.content, a.name as UserName, a.img as UserImg
+    FROM
+    posts as p
+    INNER JOIN
+     users as a
+    ON p.userId=a.Id
+    WHERE
+    p.userId=#{userId}
+</select>
+    <delete id="deletePostByUserIdAndId" parameterType="PostDto">
+        delete from posts
+        where id=#{id} and userId=#{userId}
+    </delete>
+
+    <select id="findPostByNotUserId" resultType="SelectPostJoinUserDto" parameterType="PostDto">
+        SELECT
+        p.id, p.userId, p.img, p.content, u.name as UserName, u.img as UserImg
+        FROM
+        posts as p
+        INNER JOIN
+        users as u
+        ON p.userId=u.Id
+        WHERE
+        p.userId!=#{userId}
+    </select>
+
+    <update id="updatePostByUserId" parameterType="PostDto">
+        UPDATE posts
+        <set>
+            <if test="img!=null">img=#{img},</if>
+            <if test="content!=null">content=#{content},</if>
+        </set>
+        WHERE id=#{id}
+    </update>
+
+    <insert id="postPost" parameterType="PostDto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+        posts(id, userId, img, content)
+        VALUES
+        (#{id},#{userId},#{img},#{content})
+    </insert>
+
+    <select id="getPostById" resultType="SelectPostJoinUserDto" parameterType="PostDto">
+        SELECT
+        p.id, p.userId, p.img, p.content, u.name as UserName, u.img as UserImg
+        FROM
+        posts as p
+        INNER JOIN
+        users as u
+        ON u.id=p.userId
+        WHERE p.id=#{id}
+    </select>
+    <select id="getPostByKey" resultType="SelectPostJoinUserDto" parameterType="PostDto">
+        SELECT
+        p.id, p.userId, p.img, p.content, u.name as UserName, u.img as UserImg
+        FROM
+        posts as p
+        INNER JOIN
+        users as u
+        ON p.userId=u.Id
+        WHERE
+        p.content like concat('%',#{key},'%')
+    </select>
+    <select id="getMatFollow" resultType="SelectPostJoinUserDto" parameterType="PostDto">
+        SELECT p.id
+            , p.userId
+            , p.content
+            , p.img
+            , u.img as userImg
+            , u.Name as userName
+        FROM posts as p
+        INNER JOIN
+        users as u
+        ON p.userId=u.id
+        INNER JOIN
+        follows as f
+        ON p.userId = f.following
+        WHERE f.follower=#{userId}
+    </select>
+</mapper>
